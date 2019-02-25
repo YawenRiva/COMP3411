@@ -1,0 +1,151 @@
+http://www.cse.unsw.edu.au/~cs3411/
+What is Prolog?
+    programmer only states what the problrm is and leaves the reast to the language system
+Applications of Prolog-
+    intelligent data base retrieval(searching)
+    natural language understanding
+    expert system
+    specification language
+    machine learning
+    robot planning
+    automated reasoning
+    problem solving
+
+RELATIONS
+    1. **DECLARE FACTS DESCRIBING RELATIONSHIPS BETWEEN OBJECT AND PROPERTIES
+    - Prolog programs specify 'relationships' among 'object' and 'properties' of object
+    eg1. 'John owns the book'
+        => declaring the OWNERSHIP relationship between 2 OBJECTS: 'John' & 'the book'
+    eg2. 'Does John own the book?'
+        => trying to FIND OUT about the relationship
+    2. **DEFINE RULES DEFINNG RELATIONSHIPS BETWEEN OBJECTS
+    - use RULES to find relationship)
+    - even if the relationship is not clearly stated as a fact)
+    eg3. two people are sisters IF
+            they are both female AND they have the same parents
+    eg4. (better version of above example)
+        A and B are sisters IF
+            A and B are both female AND
+            they have the same father AND
+            they have the same mother AND
+            A is not the same as B
+    3. ** ASKING QUESTIONS ABOVE RELATIONSHIPS BETWEEN OBJECTS/OBJECTS PROPERTIES
+
+(FORMAT)
+    ** We use parent(x,y) to mean x is a parents of y
+       RELATIONSHIP='parents' || OBJECTS='(x,y)'
+
+       eg. grandparent(X,Y):-parent(X,Z),parent(Z,Y)
+       => X is grandparent of Y IF
+            X is parent of Z and
+            Z is parent of Y
+
+    1. names of properties/relationships begin with LOWER CASE LETTERS
+    2. relationship name appears as the FIRST TERM
+    3. object appear as comma-separated arguments within parentheses
+    4. A period "." must end a fact
+    5. object also begin with LOWER CASE LETTERS
+       they also can begin with digits (eg. lectures(turing, 9010))
+       can be strings of characters enclosed in quotes (reads(fred,"War and peace"))
+
+//
+% prolog -s facts03.txt
+***(in SWI prolog, queries are terminated by a full stop
+    to answer the query, prolog consults its database to see if its a known fact
+    and return TRUE/FALSE)
+
+?- lectures(turing,9020).
+true.
+?- lectures(codd,9020).
+false
+
+***(if the answer is TRUE, the query SUCCEEDED, FAILED otherwise)
+//
+
+
+VARIABLES
+    - "what course does Turing teach"
+    - written as : "is there a course, X, that Turing teaches"
+    - X -> the object that questioner doesn't know yet
+    - Prolog has to find out value of X, when it exists
+    - 'unbound' if the variable is not known
+    - 'bound' to that value, if its found
+    - *** the name of a variable must begin with CAPITAL LETTER or an underscore character '_'
+
+  ***example
+   ?- Lectures(Turing, Course).    // 'Course' or '_course' both works
+   Course = 9020 <- (output)
+   ?- Lectures(_prof, 9020).
+   _prof = Turing <- (output)
+   ?- Lectures(ABC, Course).    // no solution (input)
+   false
+
+
+ CONJUNCTIONS OF GOALS IN QUERIES
+    - "Does Turing teach Fred" (this question consists two goals)
+    ?- lectures(Turing, Course), Studies(Fred, Course)
+    - "Turing lectures in course, course and Fred studies in the same course"
+      (if the course Turing teaches/Fred takes is not the same course
+       it would return FALSE.)
+
+    - *** Prolog evaluate two goals from 'left-to-right'
+     '∧' = Conjunction ('AND') -> T+T=T T+F=F F+F=F
+    - in pure,  logic p1 ∧ p2 = p2 ∧  p1
+    - in prolog, practical consideration -> GOAL should be evaluated FIRST
+      -> if P1 fails , P2 does not need to evaluated at all
+
+DISCONJUNCTIONS OF GOALS IN QUERIES (avoid use)
+
+BACKTRACKING IN PROLOG
+    - "Who does Codd teach?"
+    -  lectures(codd, Course), studies(Student, Course).
+    //*** because of Codd teaches several courses and several students are taking the courses
+          so enter " ; " when the result is not completely printed out
+    //
+    eg.
+    ?- lecture(codd,Course), studies(Student, Course).
+    course = 9311, Student = jack ; (<- enter " ; " after the first result printed out)
+    course = 9314, Student = jill;
+    Course = 9314, Student = henry. (finish print result, automatically printed ' . ')
+    (steps)
+    proceeding left to right, then BACKTRACKING
+
+RULES
+    //*** previous example ***//  (another solution)
+    edit the .txt file:
+        teaches(Teacher, Student):-
+            lectures(Teacher, Course),
+            studies(Student, Course).
+        // print out result if teacher teaches/ student takes the same course
+
+    ?- teaches(codd, Course).
+    Course = jack;
+    Course = jill;
+    Course = henry.
+
+    Facts are unit clauses and rules are non-unit clauses
+
+CLAUSE SYNTAX
+    - " :- " means "if" or "is implied by". also called the NECK symbol
+    - the left hand side of the neck is called HEAD
+        eg. teaches(Teacher, Student)
+    - the right hand side of the neck is called BODY
+        eg. lectures(Teacher, Course), studies(Student, Course)
+    - the comma, separating goals, stands for AND
+    - predefined predicate '>'
+        eg.
+    more_advanced(Student_1, Student_2) :-
+            year(Student_1,Year1),
+            year(Student_1,Year2),
+            Year1 > Year2.
+
+    [trace]  ?- more_advanced(henry,fred).
+       Call: (7) more_advanced(henry, fred) ? creep    **bind S1 to henry, S2 to fred
+       Call: (8) year(henry, _G1832) ? creep           **test 1st goal in body of rule succeeds
+       Exit: (8) year(henry, 4) ? creep                **bind Year1 to 4
+       Call: (8) year(_G1831, _G1832) ? creep          **test 2nd goal in body of rule succeeds
+       Exit: (8) year(fred, 1) ? creep                 **bind Year2 to 1
+       Call: (8) 4>1 ? creep                           **test the 3rd goal Year1>Year2
+       Exit: (8) 4>1 ? creep                           **succeeds
+       Exit: (7) more_advanced(henry, fred) ? creep    **succeeds
+    true                                               ** return TRUE
